@@ -36,13 +36,11 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       # 4. Terraform Init
-      # Parent module automatically loads the child modules
       - name: Terraform Init
         working-directory: ./parent_module
         run: terraform init -input=false
 
       # 5. Terraform Format Check
-      # Run from root so child modules are also checked
       - name: Terraform Format Check
         run: terraform fmt -check -recursive
 
@@ -57,7 +55,6 @@ jobs:
         run: terraform plan -input=false
 
       # 8. Terraform Apply
-      # Apply only after push/merge to main
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         working-directory: ./parent_module
