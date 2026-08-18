@@ -8,4 +8,8 @@ rgss = {
         name = "rg-Niki"
         location = "westus"
 }
+rg13 = {
+        name = "rg-riki"
+        location = "westus"
+}
 }
