@@ -1,0 +1,64 @@
+name: Terraform Azure Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - feature
+
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+
+  terraform:
+    name: Terraform CI/CD
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # 1. Checkout Repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2. Azure Login using Service Principal
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.Azure_CRED }}
+
+      # 3. Setup Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      # 4. Terraform Init
+      # Parent module automatically loads the child modules
+      - name: Terraform Init
+        working-directory: ./parent_module
+        run: terraform init -input=false
+
+      # 5. Terraform Format Check
+      # Run from root so child modules are also checked
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      # 6. Terraform Validate
+      - name: Terraform Validate
+        working-directory: ./parent_module
+        run: terraform validate
+
+      # 7. Terraform Plan
+      - name: Terraform Plan
+        working-directory: ./parent_module
+        run: terraform plan -input=false
+
+      # 8. Terraform Apply
+      # Apply only after push/merge to main
+      - name: Terraform Apply
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: ./parent_module
+        run: terraform apply -auto-approve -input=false
